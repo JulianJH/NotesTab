@@ -17,6 +17,18 @@ function onError(error) {
   console.log(`Error: ${error}`);
 }
 
+function syncSet(items, callback=null) {
+    syncSet(items, function() {
+        if (chrome.runtime.lastError) {
+            alert("Couldn't save! " + chrome.runtime.lastError.message +
+                "\nNote: synced storage only allows about 8KB per note.");
+        }
+        else if (callback) {
+            callback();
+        }
+    });
+}
+
 function *idGenerator(starting) {
     let i = starting;
     while(true) {
@@ -64,12 +76,12 @@ function createListElement(data) {
             notes[data.id].title = titleInput.value;
             let updatedNote = {}
             updatedNote[data.id] = notes[data.id];
-            chrome.storage.sync.set(updatedNote);
+            syncSet(updatedNote);
         }
         else
         {
             chrome.storage.sync.get([data.id], function(ldata) {
-                titleInput.value = data[data.id].title;
+                titleInput.value = ldata[data.id].title;
             });
         }
     });
@@ -81,12 +93,12 @@ function createListElement(data) {
                 notes[data.id].title = titleInput.value;
                 let updatedNote = {}
                 updatedNote[data.id] = notes[data.id];
-                chrome.storage.sync.set(updatedNote);
+                syncSet(updatedNote);
             }
             else
             {
                 chrome.storage.sync.get([data.id], function(ldata) {
-                    titleInput.value = ldata.title;
+                    titleInput.value = ldata[data.id].title;
                 });
             }
         }
@@ -145,12 +157,12 @@ function addNote() {
     selectedId = nextId;
     nextId = gen.next().value;
     // console.log(nextId);
-    chrome.storage.sync.set({"maxId": nextId});
+    syncSet({"maxId": nextId});
     let newNote = {}
     newNote[selectedId] = notes[selectedId];
-    chrome.storage.sync.set(newNote);
-    // chrome.storage.sync.set(notes);
-    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
+    syncSet(newNote);
+    // syncSet(notes);
+    // syncSet("notebook", JSON.stringify(notes));
 
     listNotes({id: selectedId, note: notes[selectedId]});
 }
@@ -162,8 +174,8 @@ function updateNote() {
     notes[selectedId].content = text;
     let updatedNote = {};
     updatedNote[selectedId] = notes[selectedId];
-    chrome.storage.sync.set(updatedNote);
-    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
+    syncSet(updatedNote);
+    // syncSet("notebook", JSON.stringify(notes));
     setFocus(selectedId);
 }
 
@@ -173,7 +185,7 @@ function deleteNote(id) {
     }
     delete notes[id];
     chrome.storage.sync.remove(id);
-    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
+    // syncSet("notebook", JSON.stringify(notes));
     const li = document.getElementById(`note-${id}`);
     document.getElementById("notes-list").removeChild(li);
     setFocus();
@@ -277,7 +289,7 @@ document.getElementById("undo").addEventListener("click", () => undoBeautify());
 document.getElementById("settings").addEventListener("click", () => showSettings());
 document.getElementById("area").addEventListener("keyup", () => updateNote());
 document.getElementById("fonts").addEventListener("change", (e) => {
-    chrome.storage.sync.set({"font": e.target.value});
+    syncSet({"font": e.target.value});
     document.getElementById("area").style.fontFamily = e.target.value;
     document.getElementById("notes-list").style.fontFamily = e.target.value;
 });
@@ -288,15 +300,15 @@ document.getElementById("fSize").addEventListener("change", (e) => {
     document.getElementById("area").style.fontSize = e.target.value+"px";
     if (document.getElementById("fForTitle").checked)
         document.getElementById("notes-list").style.fontSize = e.target.value+"px";
-    chrome.storage.sync.set({"fSize": e.target.value});
+    syncSet({"fSize": e.target.value});
 });
 document.getElementById("fForTitle").addEventListener("change", (e)=> {
     // console.log(e.target.checked);
     if (e.target.checked) {
-        chrome.storage.sync.set({"fForTitle": 1});
+        syncSet({"fForTitle": 1});
         document.getElementById("notes-list").style.fontSize = document.getElementById("fSize").value + "px";
     } else {
-        chrome.storage.sync.set({"fForTitle": 0});
+        syncSet({"fForTitle": 0});
         document.getElementById("notes-list").style.fontSize = "1.5em";
     }
 });
@@ -305,7 +317,7 @@ document.getElementsByName("theme").forEach(function(el)
     el.addEventListener("change", (e) => {
         if (e.target.checked)
         {
-            chrome.storage.sync.set({"theme": e.target.value});
+            syncSet({"theme": e.target.value});
             setTheme(e.target.value);
         }
     });
@@ -319,24 +331,30 @@ let beautiBackup = "";
 let lastIdBeauti = 0;
 
 //Migrating notes from previous versions
-const prevVersionNotes = localStorage.getItem("num");
+const prevVersionNotes = parseInt(localStorage.getItem("num"));
 if (prevVersionNotes && localStorage.getItem("migrated") != "true") {
+    let migrated = {};
     while(nextId<prevVersionNotes) {
         let oldId = nextId+1;
-        notes[nextId] = {
-            title: localStorage.getItem("noteTitle"+oldId),
-            content: localStorage.getItem("note"+oldId)
+        migrated[nextId] = {
+            title: localStorage.getItem("noteTitle"+oldId) || ("Note " + oldId),
+            content: localStorage.getItem("note"+oldId) || ""
         }
-        let newNote = {};
-        newNote[nextId] = notes[nextId];
-        chrome.storage.sync.set(newNote);
         nextId+=1;
     }
-    localStorage.setItem("migrated", "true");
+    migrated["maxId"] = nextId;
+    syncSet(migrated, function() {
+        localStorage.setItem("migrated", "true");
+        init();
+    });
     // localStorage.clear();
+}
+else {
+    init();
 }
 
 
+function init() {
 chrome.storage.sync.get(null, function(data){
     console.log(data);
     if (!isNaN(data.maxId)) {
@@ -350,11 +368,11 @@ chrome.storage.sync.get(null, function(data){
         document.getElementById("area").style.fontFamily = data.font;
     } 
     else {
-        chrome.storage.sync.set({"font": document.getElementById("fonts").value});
+        syncSet({"font": document.getElementById("fonts").value});
     }
 
     if (isNaN(data.fSize) || data.fSize == null) {
-        chrome.storage.sync.set({"fSize": document.getElementById("fSize").value});
+        syncSet({"fSize": document.getElementById("fSize").value});
     }
 
     document.getElementById("area").style.fontFamily = data.font;
@@ -365,9 +383,9 @@ chrome.storage.sync.get(null, function(data){
         document.getElementById("notes-list").style.fontSize = data.fSize + "px";
         document.getElementById("fForTitle").checked = true;
     } else if (document.getElementById("fForTitle").checked) {
-        chrome.storage.sync.set({"fForTitle": 1});
+        syncSet({"fForTitle": 1});
     } else {
-        chrome.storage.sync.set({"fForTitle": 0});
+        syncSet({"fForTitle": 0});
         document.getElementById("notes-list").style.fontSize = "1.5em";
     }
 
@@ -375,7 +393,7 @@ chrome.storage.sync.get(null, function(data){
 
     if (data.theme == null) {
         document.getElementById("theme-system").checked = true;
-        chrome.storage.sync.set({"theme": "system"})
+        syncSet({"theme": "system"})
         setTheme("system");
     }
     else
@@ -392,3 +410,4 @@ chrome.storage.sync.get(null, function(data){
     }
     listNotes();
 });
+}
