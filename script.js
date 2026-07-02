@@ -18,7 +18,7 @@ function onError(error) {
 }
 
 function syncSet(items, callback=null) {
-    syncSet(items, function() {
+    chrome.storage.sync.set(items, function() {
         if (chrome.runtime.lastError) {
             alert("Couldn't save! " + chrome.runtime.lastError.message +
                 "\nNote: synced storage only allows about 8KB per note.");
