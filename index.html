@@ -18,8 +18,6 @@
                 <li><button id="undo" disabled>Undo Last <span class="icon-pilcrow"></span>Clean</button></li>
                 <li>
                     <div id="options">
-                        <br>
-                        <hr>
                         <fieldset>
                             <legend>Font</legend>
                             <select id="fonts" name="fonts" value="Arial">
@@ -29,8 +27,10 @@
                                 <option value="Verdana">Verdana</option>
                             </select>
                             <input id="fSize" value="30" type="number" min="1" size="3" name="font-size">
-                            <br><label for="fForTitle">Use for titles</label>
-                            <input id="fForTitle" type="checkbox" name="font-for-title">
+                            <div class="option-row">
+                                <label for="fForTitle">Use for titles</label>
+                                <input id="fForTitle" type="checkbox" name="font-for-title">
+                            </div>
                         </fieldset>
                         <fieldset>
                             <legend>Theme</legend>
@@ -41,7 +41,6 @@
                             <input type="radio" name="theme" value="dark" id="theme-dark">
                             <label for="theme-dark">Dark</label>
                         </fieldset>
-                        <hr>
                     </div>
                     <button id="settings"> Settings</button>
                 </li>
@@ -52,7 +51,7 @@
         </section>
 
         <section id="mainarea">
-            <textarea id="area"></textarea>
+            <textarea id="area" placeholder="Start typing…"></textarea>
         </section>
     </div>
    
