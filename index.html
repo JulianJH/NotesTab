@@ -3,32 +3,59 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Productivity Tab</title>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Notes Tab</title>
     <link rel="stylesheet" type="text/css" href="icons.css">
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="toolbar">
-        <ol id="notes-list">
-            <li id="create-note">CREATE NOTE</li>
-            <li id="menu-button"><span class="icon-cog"></span></li>
-        </ol>
+    <div id="content">
+        <section id="sidebar">
+        <nav>
+            <ul>
+                <li><button id="create-note">New</button></li>
+                <li><button id="beautify"><span class="icon-pilcrow"></span>  Cleaner</button></li>
+                <li><button id="undo" disabled>Undo Last <span class="icon-pilcrow"></span>Clean</button></li>
+                <li>
+                    <div id="options">
+                        <br>
+                        <hr>
+                        <fieldset>
+                            <legend>Font</legend>
+                            <select id="fonts" name="fonts" value="Arial">
+                                <option value="Arial">Arial</option>
+                                <option value="Times">Times</option>
+                                <option value="Courier">Courier</option>
+                                <option value="Verdana">Verdana</option>
+                            </select>
+                            <input id="fSize" value="30" type="number" min="1" size="3" name="font-size">
+                            <br><label for="fForTitle">Use for titles</label>
+                            <input id="fForTitle" type="checkbox" name="font-for-title">
+                        </fieldset>
+                        <fieldset>
+                            <legend>Theme</legend>
+                            <input type="radio" name="theme" value="system" id="theme-system">
+                            <label for="theme-system">System</label>
+                            <input type="radio" name="theme" value="light" id="theme-light">
+                            <label for="theme-light">Light</label>
+                            <input type="radio" name="theme" value="dark" id="theme-dark">
+                            <label for="theme-dark">Dark</label>
+                        </fieldset>
+                        <hr>
+                    </div>
+                    <button id="settings"> Settings</button>
+                </li>
+            </ul>
+        </nav>
+        <ul id="notes-list">
+        </ul>
+        </section>
+
+        <section id="mainarea">
+            <textarea id="area"></textarea>
+        </section>
     </div>
-    <textarea id="area"></textarea>
-    <ul id="settings" class="hidden">
-        <li>Note Title:</li>
-        <li>
-            <input id="note-title" type="text">
-        </li>
-        <li>Font Size:</li>
-        <li>
-            <input id="font-size" type="number" min="10" max="100" placeholder="24">
-        </li>
-        <li>Delete Note:</li>
-        <li>
-            <input id="erase" type="button" value="Delete"></button>
-        </li>
-    </ul>
-    <script src="script.js"></script>
+   
+    <script type="module" src="script.js"></script>
 </body>
 </html>

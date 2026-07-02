@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "NotesTab",
-  "version": "1.1",
+  "version": "2.1",
 
   "description": "Changes new tab to a very simple text editor with custom notes",
 
@@ -15,6 +15,10 @@
 
   "chrome_url_overrides" : {
     "newtab": "index.html"
-  }
+  },
+
+  "permissions" : [
+    "storage"
+  ]
 
 }

@@ -1,95 +1,218 @@
 * {
-    padding: 0;
-    margin: 0;
-    border: none;
+    box-sizing: border-box;
 }
 
 html, body {
+    margin: 0;
+    padding: 0;
     height: 100%;
 }
 
-.hidden {
-    display: none;
-}
-
-#area {
-    width: 100%;
-    height: 90%;
-    resize: none;
-    font-size: 2em;
-    padding: 2%;
-    color: black;
-    box-sizing: border-box;
-}
-
-#toolbar {
-    height: 10%;
-    background: #3465A4FF;
-}
-
-#notes-list {
+ul, li {
     list-style: none;
+    /* margin: 0; */
+    padding: 0;
 }
 
-#notes-list li {
-    list-style: none;
-    display: inline-block;
+input[type='number'] {
+    -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+::-webkit-resizer,
+::-moz-resizer {
+    -moz-appearance:none; /* Firefox */
+    -webkit-appearance:none; /* Safari and Chrome */
+    appearance: none;
+    background-color: red;
+}
+
+.focused {
+    background-color: #fff;
+}
+
+#content {
+    display: flex;
+    flex-flow: row nowrap;
     height: 100%;
-    padding: 1em;
-    background: #3465A4FF;
-    font-weight: bold;
-    color: white;
-    font-size: 1.2em;
-    font-family: Arial, 'Sans-Serif';
 }
 
-#notes-list li:hover {
-    background: #204A87FF;
-    cursor: pointer;
-}
-
-#notes-list li.active {
-    background: #204A87FF;
-}
-
-#menu-button {
-    float: right;
-    padding: 0.8em 0.7em 0.6em 0.7em !important;
-}
-
-#menu-button span {
-    font-size: 1.6em;
-}
-
-#settings {
-    height: 90%;
+#sidebar {
+    /*flex: 1;*/
+    min-width: 200px;
     width: 20%;
-    float: right;
-    background: #3465A4FF;
-    color: white;
-    padding: 0 1em;
-    box-sizing: border-box;
-    text-decoration: none;
+    background-color: #eee;
+    overflow-x: hidden;
+    /*max-width: 350px;*/
+    resize: horizontal;
+}
+
+#sidebar nav {
+    text-align: center;
+}
+
+#sidebar nav ul li {
+    display: inline-block;
     list-style: none;
+    padding-bottom: 10px;
 }
 
-#settings li:nth-child(even) {
-    padding: 3px 0 20px 0;
+#sidebar button:disabled {
+    color: #999;
 }
 
-#settings li input {
+#sidebar button {
+    font-size: 1em;
+    border-radius: 5%;
+    border: none;
+    padding: 10px 20px;
+    font-family: Arial;
+    font-weight: bold;
+    background-color: #f6f6f6;
+}
+
+#options {
+    display: none;
     width: 100%;
-    color: black;
 }
 
-#erase {
+#options input,
+#options select {
+    border-radius: 5%;
+    border: none;
+    padding: 5px 10px;
+    font-size: 1em;
     background-color: white;
 }
 
-#erase:hover {
-    background-color: #BABDB6FF;
+#options select {
+    -moz-appearance:none; /* Firefox */
+    -webkit-appearance:none; /* Safari and Chrome */
+    appearance:none;
 }
 
-#erase:disabled {
-    background-color: #2E3436FF;
+#options fieldset {
+    margin-bottom: 10px;
+}
+
+#options input[type="radio"] {
+  margin-top: -3px;
+  vertical-align: middle;
+}
+
+#notes-list li {
+    padding: 5px 8px;
+    box-sizing: border-box;
+    font-size: inherit;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#sidebar button:hover,
+#notes-list li:hover {
+    background-color: #aaa;
+}
+
+#sidebar button:disabled:hover {
+    background-color: #f6f6f6;
+}
+
+#notes-list li input {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    flex: 1;
+}
+
+#notes-list li input:read-only {
+    background: none;
+}
+
+.buttons .save {
+    padding-right: 10px;
+}
+
+.delete:hover {
+    color: red;
+    cursor: pointer;
+}
+
+.save:hover {
+    color: #00eeff;
+    cursor: pointer;
+}
+
+#mainarea {
+    /*margin: 0 0 0 20%;*/
+    /*width: 80%;*/
+    /*height: 100vh;*/
+    flex: 4;
+    min-width: 300px;
+}
+
+#area {
+    border: none;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    margin: 0;
+    font-family: "Arial";
+    resize: none;
+}
+
+body[data-theme="dark"] .focused {
+    background-color: #212121;
+}
+
+body[data-theme="dark"] #sidebar {
+    background-color: #333;
+    color: white;
+}
+
+body[data-theme="dark"] #sidebar button {
+    background-color: #000;
+    color: #fff;
+}
+
+body[data-theme="dark"] #sidebar button:disabled {
+    color: #999;
+}
+
+body[data-theme="dark"] #sidebar button:disabled:hover {
+    background-color: #000;
+}
+
+body[data-theme="dark"] #sidebar button:hover,
+body[data-theme="dark"] #notes-list li:hover {
+    background-color: #555;
+}
+
+body[data-theme="dark"] #options {
+    color: white;
+}
+
+body[data-theme="dark"] #options input,
+body[data-theme="dark"] #options select {
+    background-color: #000;
+    color: white;
+}
+
+body[data-theme="dark"] #notes-list li input:read-only {
+    background: none;
+}
+
+body[data-theme="dark"] #notes-list li input {
+    background: #000;
+    color: white;
+}
+
+body[data-theme="dark"] #area {
+    color: white;
+    background-color: #212121;
 }

@@ -3,257 +3,392 @@ function check_web_storage_support() {
         return(true);
     }
     else {
-        alert("Web storage unsupported!");
+        alert("Web storage unsupported! This addon will not work. We're working on this");
         return(false);
     }
 }
 
-function load(currNote) {
-    if(check_web_storage_support() == true) {
-        var name = "note" + currNote;
-        // alert(name);
-        var result = localStorage.getItem(name);
-    }
-    if(result === null) {
-        // No note saved;
-        document.getElementById('area').value = "";
-    }
-    else {
-        document.getElementById('area').value = result;
-    }
-    var titleInput = document.getElementById("note-title");
-    titleInput.value = localStorage.getItem("noteTitle" + currNote);
-    var eraseInput = document.getElementById("erase");
-    eraseInput.value = "Delete \"" + localStorage.getItem("noteTitle"+currNote) + "\"";
-    eraseInput.setAttribute("index", currNote);
+function onGot(item) {
+  console.log(item);
+//   console.log("hola");
 }
 
-function save(currNote) {
-    if(check_web_storage_support() == true) {
-        var area = document.getElementById("area");
-        var name = "note" + currNote;
-        // alert(area.value);
-        localStorage.setItem(name, area.value);
+function onError(error) {
+  console.log(`Error: ${error}`);
+}
+
+function *idGenerator(starting) {
+    let i = starting;
+    while(true) {
+        yield i++;
     }
 }
 
-function create() {
-    var notesNum = parseInt(localStorage.getItem("num"))+1;
-    var noteTitle = prompt("Note Title", "Note"+notesNum);
-    if (noteTitle === null)
-        return;
-    if (noteTitle === "")
-        noteTitle = "Note"+notesNum;
-    localStorage.setItem("num", notesNum);
-    localStorage.setItem("noteTitle"+notesNum, noteTitle);
-    loadNotes();
-    if (document.getElementsByClassName("active")[0] != null) {
-        document.getElementsByClassName("active")[0].setAttribute("class", "");
+function setFocus(id=null) {
+    if (id === null) {
+        if (document.getElementById("notes-list").lastElementChild)
+            id = document.getElementById("notes-list").lastElementChild.id.substring(5);
     }
-    document.getElementById(notesNum).setAttribute("class", "active");
-    var titleInput = document.getElementById("note-title");
-    titleInput.disabled = false;
-    var eraseInput = document.getElementById("erase");
-    eraseInput.value = "Delete \"" + noteTitle + "\"";
-    eraseInput.setAttribute("index", notesNum);
-    eraseInput.disabled = false;
-    var area = document.getElementById("area");
-    area.disabled = false;
-    load(notesNum);
-}
-
-function erase(currNote) {
-    var notesNum = parseInt(localStorage.getItem("num"));
-
-    //Don't allow for zero notes, clear text if there's only one left
-    // if (notesNum == 1) {
-    //     var area = document.getElementById("area");
-    //     area.value = "";
-    //     //Reacomodate index and delete erased note
-    //     localStorage.removeItem('note'+currNote);
-    //     localStorage.removeItem('noteTitle'+currNote);
-    //     var titleInput = document.getElementById("note-title");
-    //     var newTitle = prompt("Note Title", "Note1");
-    //     titleInput.value = newTitle;
-    //     localStorage.setItem('noteTitle1', newTitle);
-    //     save(1);
-    //     return;
-    // }
-
-    //Reacomodate IDs if needed
-    if (currNote != notesNum) {
-        var i = parseInt(currNote)+1;
-        while(i <= notesNum) {
-            var noteText = localStorage.getItem("note"+i);
-            if (noteText!==null)
-                localStorage.setItem("note"+(i-1), noteText);
-            else
-                localStorage.setItem("note"+(i-1), "");
-            i++;
-        }
+    // console.log(id);
+    // console.log(notes[id]);
+    if (document.getElementsByClassName("focused")[0]) {
+        document.getElementsByClassName("focused")[0].classList.remove("focused");
     }
-    localStorage.removeItem("note"+notesNum);
-    localStorage.removeItem("noteTitle"+notesNum);
-    notesNum--;
-    localStorage.setItem("num", notesNum);
-    document.getElementById(currNote).remove();
-    loadNotes();
-    if (document.getElementById(notesNum+1) != null) {
-        document.getElementById(notesNum+1).remove();
+    if (id) {
+        // console.log(id);
+        // console.log(document.querySelector(`#note-${id}`));
+        document.getElementById(`note-${id}`).classList.add("focused");
+        document.getElementById("area").value = notes[id].content;
+        selectedId = id;
     }
-
-    var eraseInput = document.getElementById("erase");
-    //Set first note as active, if there is one
-    if (document.getElementById(1) != null) {
-        document.getElementById(1).setAttribute("class", "active");
-        load(1);
-    } else {
-        var titleInput = document.getElementById("note-title");
-        titleInput.disabled = true;
-        eraseInput.disabled = true;
-        var area = document.getElementById("area");
-        area.value = "No Notes Found, Create One To Start";
-        area.disabled = true;
+    else
+    {
+        document.getElementById("area").value = "";
+        selectedId = -1;
     }
 }
 
-function loadNotes() {
-    if (check_web_storage_support() == true) {
-        var notesNum = parseInt(localStorage.getItem("num"));
-        var ul = document.getElementById("notes-list");
-        var i = 1;
-        while (i <= notesNum) {
-            var name = i;
-            if (document.getElementById(name) != null) {
-                document.getElementById(name).remove();
-            }
-            var li = document.createElement("li");
-            var title = localStorage.getItem("noteTitle"+i);
-            
-            if (title != null) {
-                //Load custom titles
-                li.appendChild(document.createTextNode(title));
-            }
-            else {
-                //Use Note1, Note2, Note3... names
-                li.appendChild(document.createTextNode("NOTE " + name));
-            }
-
-            li.setAttribute("id", name);
-            li.onclick = function() {
-                document.getElementsByClassName("active")[0].setAttribute("class", "");
-                this.setAttribute('class', 'active');
-
-                var eraseText = "Delete \"" + localStorage.getItem("noteTitle"+this.getAttribute('id')) + "\"";
-                document.getElementById("erase").value = eraseText; 
-                document.getElementById("erase").setAttribute('index', this.getAttribute('id'));
-                load(this.getAttribute('id'));
-            };
-            ul.appendChild(li);
-            i++;
-        }
-        // if (document.getElementById("erase") != null) {
-        //     document.getElementById("erase").remove();
-        // }
-        if (notesNum > 0) {
-        //     var li = document.createElement("li");
-        //     li.appendChild(document.createTextNode("ERASE (NOTE 1)"));
-        //     li.setAttribute('id', "erase");
-        //     li.setAttribute('index', 1);
-        //     li.onclick = function() {
-        //         erase(this.getAttribute('index'));
-        //     };
-        //     ul.appendChild(li);
+function createListElement(data) {
+    const li = document.createElement("li");
+    let titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.value = data.note.title;
+    titleInput.size = 8;
+    titleInput.readOnly = true;
+    titleInput.tabIndex = -1;
+    titleInput.addEventListener('dblclick', () => titleInput.readOnly=false );
+    titleInput.addEventListener('focusout', () => {
+        titleInput.readOnly=true;
+        let whitespaces = titleInput.value.replace(/^\s+/, '').replace(/\s+$/, '');
+        if (whitespaces != '') {
+            notes[data.id].title = titleInput.value;
+            let updatedNote = {}
+            updatedNote[data.id] = notes[data.id];
+            chrome.storage.sync.set(updatedNote);
         }
         else
         {
-            localStorage.setItem("num", 0);
+            chrome.storage.sync.get([data.id], function(ldata) {
+                titleInput.value = data[data.id].title;
+            });
         }
-    }
-}
-
-
-var totalNotes = localStorage.getItem("num");
-var area = document.getElementById('area');
-if (totalNotes <= 0) {
-    // localStorage.setItem("num", 1);
-    area.value = "No Notes Found, Create One To Start";
-    area.disabled = true;
-}
-
-loadNotes();
-if (totalNotes>0) {
-    document.getElementById("1").setAttribute("class", "active");
-    document.getElementById("erase").setAttribute("index", "1");
-    load(1);
-}
-
-var createButton = document.getElementById("create-note");
-createButton.onclick = create;
-
-var menuButton = document.getElementById("menu-button");
-menuButton.onclick = function() {
-    var menu = document.getElementById("settings");
-    if (menu.getAttribute("class") == "hidden") {
-        area.style.width = "80%";
-        menu.setAttribute("class", "");
-    } else {
-        area.style.width = "100%";
-        menu.setAttribute("class", "hidden");
-    }
-};
-
-var fontInput = document.getElementById("font-size");
-if (fontInput.addEventListener) {
-    fontInput.addEventListener('input', function() {
-        if (parseInt(this.value) > 100)
-            this.value = 100;
-        area.style.fontSize=this.value+"px";
-    }, false);
-}
-fontInput.dispatchEvent(new Event('input'));
-
-var titleInput = document.getElementById("note-title");
-if (titleInput.addEventListener) {
-    titleInput.addEventListener('input', function() {
-        if (document.getElementsByClassName("active")[0] != null) {
-            var index = document.getElementsByClassName("active")[0].getAttribute("id");
-            var activeNote = document.getElementsByClassName("active")[0];
-            if (titleInput.value !== null && titleInput.value != "") {
-                localStorage.setItem("noteTitle"+index, titleInput.value);
-                while (activeNote.firstChild) {
-                    activeNote.removeChild(activeNote.firstChild);
-                }
-                activeNote.appendChild(document.createTextNode(titleInput.value));
-            } else {
-                localStorage.setItem("noteTitle"+index, "Note"+index);
-                while (activeNote.firstChild) {
-                    activeNote.removeChild(myNode.firstChild);
-                }
-                activeNote.appendChild(document.createTextNode("Note"+index));
+    });
+    titleInput.addEventListener('keyup', (e) => {
+        if(e.key==="Enter" || e.keyCode===13){ 
+            titleInput.readOnly=true;
+            let whitespaces = titleInput.value.replace(/^\s+/, '').replace(/\s+$/, '');
+            if (whitespaces != '') {
+                notes[data.id].title = titleInput.value;
+                let updatedNote = {}
+                updatedNote[data.id] = notes[data.id];
+                chrome.storage.sync.set(updatedNote);
             }
-        } else {
-            titleInput.disabled = true;
+            else
+            {
+                chrome.storage.sync.get([data.id], function(ldata) {
+                    titleInput.value = ldata.title;
+                });
+            }
         }
-    }, false);
+    });
+    li.appendChild(titleInput);
+    li.addEventListener("click", () => setFocus(li.id.substring(5)));
+    const delSpan = document.createElement("span");
+    delSpan.classList.add("icon-bin2");
+    const saveSpan = document.createElement("span");
+    saveSpan.classList.add("icon-download");
+    saveSpan.addEventListener("click", (e)=>{
+        saveTextAsFile(li.id.substring(5));
+        e.stopPropagation();
+    });
+    // delSpan.appendChild(document.createTextNode("X"));
+    delSpan.classList.add("delete");
+    saveSpan.classList.add("save");
+    delSpan.addEventListener("click", (e) => {
+        deleteNote(li.id.substring(5));
+        e.stopPropagation();
+    });
+    const buttonsDiv = document.createElement("div");
+    buttonsDiv.classList.add("buttons");
+    buttonsDiv.appendChild(saveSpan);
+    buttonsDiv.appendChild(delSpan);
+    li.appendChild(buttonsDiv);
+    li.setAttribute("id", `note-${data.id}`);
+    return li;
 }
-titleInput.dispatchEvent(new Event('input'));
 
-var deleteInput = document.getElementById("erase");
-deleteInput.value = "Delete \"" + titleInput.value + "\"";
-if (deleteInput.addEventListener) {
-    deleteInput.addEventListener('click', function() {
-        erase(this.getAttribute("index"));
-    }, false);
+function listNotes(newNote=null) {
+    const ul = document.getElementById("notes-list");
+    if (newNote === null) {
+        for (let noteId in notes) {
+            const note = notes[noteId];
+            const li = createListElement({id: noteId, note});
+            ul.appendChild(li);
+        }
+    }
+    else {
+        const li = createListElement(newNote);
+        ul.appendChild(li);
+    }
+    setFocus();
 }
 
-if (totalNotes <= 0)
-    deleteInput.disabled = true;
-else
-    deleteInput.disabled = false;
+function addNote() {
+    const newNoteTitle = `New Note ${nextId}`;
+    const newNoteContent = "New Note";
+    // const newNoteContent = `Note content from id ${nextId}`;
+    notes[nextId] = {
+        title: newNoteTitle,
+        content: newNoteContent
+    };
+    // console.log(notes);
+    selectedId = nextId;
+    nextId = gen.next().value;
+    // console.log(nextId);
+    chrome.storage.sync.set({"maxId": nextId});
+    let newNote = {}
+    newNote[selectedId] = notes[selectedId];
+    chrome.storage.sync.set(newNote);
+    // chrome.storage.sync.set(notes);
+    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
 
-if (area.addEventListener) {
-  area.addEventListener('input', function() {
-    save(document.getElementsByClassName("active")[0].getAttribute('id'));
-  }, false);
+    listNotes({id: selectedId, note: notes[selectedId]});
 }
+
+function updateNote() {
+    let text = document.getElementById("area").value;
+    if (selectedId == -1)
+        addNote();
+    notes[selectedId].content = text;
+    let updatedNote = {};
+    updatedNote[selectedId] = notes[selectedId];
+    chrome.storage.sync.set(updatedNote);
+    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
+    setFocus(selectedId);
+}
+
+function deleteNote(id) {
+    if (!confirm("Are you sure you want to delete: "+notes[id].title)) {
+        return;
+    }
+    delete notes[id];
+    chrome.storage.sync.remove(id);
+    // chrome.storage.sync.set("notebook", JSON.stringify(notes));
+    const li = document.getElementById(`note-${id}`);
+    document.getElementById("notes-list").removeChild(li);
+    setFocus();
+}
+
+function showSettings () {
+    let menu = document.getElementById("options");
+    // console.log(menu.style.display);
+    if (!menu.style.display || menu.style.display == "none") {
+        menu.style.display = "block";
+        document.getElementById("settings").textContent = "Close";
+    }
+    else {
+        menu.style.display = "none";
+        document.getElementById("settings").textContent = "Settings";
+    }
+}
+
+function beautify() {
+    let area = document.getElementById("area");
+    let backBackup = beautiBackup;
+    beautiBackup = area.value;
+    if (backBackup == "")
+        backBackup = beautiBackup;
+    area.value = area.value.replace(/(\.\r\n|\.\n|\.\r)/gm,"<pr>");
+    area.value = area.value.replace(/(\r\n|\n|\r)/gm," ");
+    area.value = area.value.replace(/<pr>/gm,"\.\n\n");
+
+    while (area.value.includes("  ") || area.value.includes("\n "))
+    {
+        area.value = area.value.replace("  ", " ");
+        area.value = area.value.replace("\n ", "\n");
+    }
+
+    if (area.value == beautiBackup)
+        beautiBackup = backBackup;
+
+    updateNote();
+    document.getElementById("undo").disabled = false;
+    lastIdBeauti = selectedId;
+}
+
+function undoBeautify()
+{
+    setFocus(lastIdBeauti);
+    document.getElementById("undo").disabled = true;
+    area.value = beautiBackup;
+    updateNote();
+}
+
+function setTheme(theme) {
+    if (theme != "system") {
+        document.body.setAttribute("data-theme", theme);
+    }
+    else {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+            document.body.setAttribute("data-theme", "dark");
+        else
+            document.body.setAttribute("data-theme", "light");
+    }
+}
+
+function saveTextAsFile(id) {
+    chrome.storage.sync.get(id, function(data){
+        var textToWrite = data[id].content;
+        var textFileAsBlob = new Blob([ textToWrite ], { type: 'text/plain' });
+        var fileNameToSaveAs = data[id].title;
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        if (window.webkitURL != null) {
+            // Chrome allows the link to be clicked without actually adding it to the DOM.
+            downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        } else {
+            // Firefox requires the link to be added to the DOM before it can be clicked.
+            downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+            downloadLink.onclick = destroyClickedElement;
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+        }
+
+        downloadLink.click();
+    });
+}
+
+function destroyClickedElement(event) {
+    // remove the link from the DOM
+    document.body.removeChild(event.target);
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addListener(()=> {
+    if(document.getElementById("theme-system").checked == true) {
+        setTheme("system");
+    }
+});
+
+document.getElementById("create-note").addEventListener("click", () => addNote());
+document.getElementById("beautify").addEventListener("click", () => beautify());
+document.getElementById("undo").addEventListener("click", () => undoBeautify());
+document.getElementById("settings").addEventListener("click", () => showSettings());
+document.getElementById("area").addEventListener("keyup", () => updateNote());
+document.getElementById("fonts").addEventListener("change", (e) => {
+    chrome.storage.sync.set({"font": e.target.value});
+    document.getElementById("area").style.fontFamily = e.target.value;
+    document.getElementById("notes-list").style.fontFamily = e.target.value;
+});
+document.getElementById("fSize").addEventListener("change", (e) => {
+    // if (e.target.value > 70){
+    //     e.target.value = 70;
+    // }
+    document.getElementById("area").style.fontSize = e.target.value+"px";
+    if (document.getElementById("fForTitle").checked)
+        document.getElementById("notes-list").style.fontSize = e.target.value+"px";
+    chrome.storage.sync.set({"fSize": e.target.value});
+});
+document.getElementById("fForTitle").addEventListener("change", (e)=> {
+    // console.log(e.target.checked);
+    if (e.target.checked) {
+        chrome.storage.sync.set({"fForTitle": 1});
+        document.getElementById("notes-list").style.fontSize = document.getElementById("fSize").value + "px";
+    } else {
+        chrome.storage.sync.set({"fForTitle": 0});
+        document.getElementById("notes-list").style.fontSize = "1.5em";
+    }
+});
+document.getElementsByName("theme").forEach(function(el)
+{
+    el.addEventListener("change", (e) => {
+        if (e.target.checked)
+        {
+            chrome.storage.sync.set({"theme": e.target.value});
+            setTheme(e.target.value);
+        }
+    });
+});
+
+let nextId = 0;
+var gen;
+let selectedId = 0;
+let notes = {};
+let beautiBackup = "";
+let lastIdBeauti = 0;
+
+//Migrating notes from previous versions
+const prevVersionNotes = localStorage.getItem("num");
+if (prevVersionNotes && localStorage.getItem("migrated") != "true") {
+    while(nextId<prevVersionNotes) {
+        let oldId = nextId+1;
+        notes[nextId] = {
+            title: localStorage.getItem("noteTitle"+oldId),
+            content: localStorage.getItem("note"+oldId)
+        }
+        let newNote = {};
+        newNote[nextId] = notes[nextId];
+        chrome.storage.sync.set(newNote);
+        nextId+=1;
+    }
+    localStorage.setItem("migrated", "true");
+    // localStorage.clear();
+}
+
+
+chrome.storage.sync.get(null, function(data){
+    console.log(data);
+    if (!isNaN(data.maxId)) {
+        nextId = data.maxId;
+    }
+    gen = idGenerator(nextId);
+    nextId = gen.next().value;
+    // console.log("nID: " + nextId);
+
+    if (!isNaN(data.font) && data.font != null) {
+        document.getElementById("area").style.fontFamily = data.font;
+    } 
+    else {
+        chrome.storage.sync.set({"font": document.getElementById("fonts").value});
+    }
+
+    if (isNaN(data.fSize) || data.fSize == null) {
+        chrome.storage.sync.set({"fSize": document.getElementById("fSize").value});
+    }
+
+    document.getElementById("area").style.fontFamily = data.font;
+    document.getElementById("fonts").value = data.font;
+    document.getElementById("notes-list").style.fontFamily = data.font;
+    document.getElementById("area").style.fontSize = data.fSize + "px";
+    if (data.fForTitle == 1) {
+        document.getElementById("notes-list").style.fontSize = data.fSize + "px";
+        document.getElementById("fForTitle").checked = true;
+    } else if (document.getElementById("fForTitle").checked) {
+        chrome.storage.sync.set({"fForTitle": 1});
+    } else {
+        chrome.storage.sync.set({"fForTitle": 0});
+        document.getElementById("notes-list").style.fontSize = "1.5em";
+    }
+
+    document.getElementById("fSize").value = data.fSize;
+
+    if (data.theme == null) {
+        document.getElementById("theme-system").checked = true;
+        chrome.storage.sync.set({"theme": "system"})
+        setTheme("system");
+    }
+    else
+    {
+        document.getElementById("theme-"+data.theme).checked = true;
+        setTheme(data.theme);
+    }
+
+    for (const id in data) {
+        let note = data[id];
+        if (note.title) {
+            notes[id] = data[id];
+        }
+    }
+    listNotes();
+});
